@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+window.contextInfo = {"files":[],"materials":[],"crafts":[]};
+// 处理锚点链接跳转（srcDoc iframe 中锚点链接默认行为不正确）
+document.addEventListener('click', function(e) {
+  var anchor = e.target.closest('a');
+  if (anchor) {
+    var href = anchor.getAttribute('href');
+    if (href && href.startsWith('#')) {
+      e.preventDefault();
+      var targetId = href.slice(1);
+      var target = document.getElementById(targetId);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }
+});
+</script>
+<script>
+window.contextInfo = {"files":[],"materials":[],"crafts":[]};
+// 处理锚点链接跳转（srcDoc iframe 中锚点链接默认行为不正确）
+document.addEventListener('click', function(e) {
+  var anchor = e.target.closest('a');
+  if (anchor) {
+    var href = anchor.getAttribute('href');
+    if (href && href.startsWith('#')) {
+      e.preventDefault();
+      var targetId = href.slice(1);
+      var target = document.getElementById(targetId);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }
+});
+</script>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>OceanEmbed — AI-Powered Subsurface Ocean Temperature Reconstruction</title>
+<style>
+:root{
+  --navy:#0a2a4a;--blue:#1565d8;--blue2:#1677e8;--cyan:#0aa7d8;--ink:#10213e;--muted:#64748b;
+  --line:#dbe7f3;--red:#e7354b;--orange:#f59e0b;--green:#18b56a;--purple:#7c5cd6;
+  --shadow:0 10px 30px rgba(13,46,85,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  color:var(--ink);-webkit-font-smoothing:antialiased;
+  background-image:linear-gradient(rgba(238,246,252,.72),rgba(238,246,252,.86)),
+    url("https://cdn.youmindassets.com/user-files/e97bd7c4fe9460874e003c3a5b3cd7edab2e3a4656023acd2c42e13b6124600a?width=4000&height=4000&fit=scale-down&format=webp&quality=80");
+  background-attachment:fixed,fixed;background-position:center,center;
+  background-size:cover,cover;background-repeat:no-repeat,no-repeat;min-height:100vh;
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+
+/* ---------- SIDEBAR ---------- */
+.sidebar{position:sticky;top:0;height:100vh;z-index:20;display:flex;flex-direction:column;overflow-y:auto;
+  padding:16px 12px 10px;color:#fff;border-right:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg,rgba(10,42,74,.90),rgba(6,22,44,.95));
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:6px 0 26px rgba(4,20,44,.22)}
+.brand{display:flex;align-items:center;gap:11px;padding:6px 8px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
+.brandMark{width:42px;height:42px;border-radius:12px;flex:0 0 auto;display:grid;place-items:center;font-size:21px;
+  background:linear-gradient(135deg,#5ccbff,#1565d8);box-shadow:0 8px 22px rgba(21,101,216,.45)}
+.brandTxt h1{margin:0;font-size:17px;font-weight:800;letter-spacing:-.3px}
+.brandTxt span{display:block;margin-top:3px;font-size:9px;letter-spacing:.5px;color:#9fc0e0}
+.nav{display:flex;flex-direction:column;gap:4px;padding:14px 0 0}
+.nav button{border:0;background:transparent;color:#b9cde2;text-align:left;padding:10px 12px;border-radius:10px;
+  display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;transition:background .18s,color .18s,box-shadow .18s}
+.nav button:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav button.active{background:linear-gradient(90deg,#1a72e0,#1b57a8);color:#fff;box-shadow:0 8px 20px rgba(20,110,220,.38)}
+.nav .ico{width:20px;text-align:center;font-size:14px}
+.sideCard{margin-top:auto;border-radius:16px;padding:14px;overflow:hidden;border:1px solid rgba(255,255,255,.14);
+  background:linear-gradient(180deg,rgba(30,102,178,.5),rgba(8,30,60,.85)),radial-gradient(circle at 68% 18%,rgba(76,201,255,.5),transparent 55%);
+  backdrop-filter:blur(6px)}
+.globe{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:24px;margin-bottom:10px;
+  background:radial-gradient(circle at 35% 30%,#9ce6ff,#1a72e0 68%,#0b3f7a);box-shadow:0 8px 22px rgba(0,0,0,.35)}
+.sideCard b{display:block;font-size:14px}
+.sideCard em{display:block;font-style:normal;font-size:13px;font-weight:700;color:#8fd4ff}
+.sideCard span{display:block;margin-top:7px;font-size:10px;line-height:1.55;color:#c2d8ee}
+.sideFoot{margin-top:12px;padding:11px 8px 4px;border-top:1px solid rgba(255,255,255,.12)}
+.sideFoot div{font-size:9px;color:#9db9d6;letter-spacing:.3px;line-height:1.6}
+
+/* ---------- HEADER ---------- */
+.main{min-width:0}
+.header{position:relative;overflow:hidden;padding:26px 30px 24px;color:#fff;
+  background-image:linear-gradient(180deg,rgba(6,26,52,.52),rgba(8,44,88,.40) 55%,rgba(7,36,72,.56)),
+    url("https://cdn.youmindassets.com/user-files/e97bd7c4fe9460874e003c3a5b3cd7edab2e3a4656023acd2c42e13b6124600a?width=4000&height=4000&fit=scale-down&format=webp&quality=80");
+  background-size:cover;background-position:center 25%}
+.header::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(3,16,34,.55),rgba(3,16,34,.12) 42%,transparent 68%)}
+.headerInner{position:relative;z-index:2;display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.brandTitle{margin:0;font-size:40px;font-weight:900;letter-spacing:-1.8px;
+  background:linear-gradient(90deg,#d6f0ff,#5cb8ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 2px 22px rgba(0,25,55,.4)}
+.headerSub{margin:8px 0 0;font-size:15px;color:#e2f0fc;font-weight:600}
+.headerTag{margin:9px 0 0;font-size:12.5px;color:#a9cdea;letter-spacing:.2px}
+.headerTag::before{content:"◇ ";color:#7fd0ff}
+.headerRight{display:flex;flex-direction:column;align-items:flex-end;gap:12px;min-width:300px}
+.searchRow{display:flex;align-items:center;gap:16px;justify-content:flex-end;flex-wrap:wrap;width:100%}
+.searchWrap{position:relative;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.95);
+  border-radius:26px;height:44px;padding:0 6px 0 16px;width:min(360px,42vw);box-shadow:0 12px 28px rgba(0,20,45,.28)}
+.searchInput{border:0;outline:0;background:transparent;flex:1;font-size:12.5px;color:#1a2c48;min-width:0}
+.searchInput::placeholder{color:#8a99ae;font-size:11.5px}
+.searchBtn{width:34px;height:34px;border-radius:50%;border:0;flex:0 0 auto;color:#fff;font-size:14px;
+  background:linear-gradient(135deg,#1e7ff0,#1565d8);box-shadow:0 6px 14px rgba(21,101,216,.45);transition:transform .15s}
+.searchBtn:hover{transform:scale(1.06)}
+.suggest{position:absolute;top:52px;left:0;right:0;background:#fff;border-radius:13px;overflow:hidden;
+  box-shadow:0 20px 44px rgba(10,30,60,.28);display:none;z-index:60;padding:6px 0}
+.suggest.show{display:block}
+.suggest .sgTitle{padding:6px 14px;font-size:9px;letter-spacing:.6px;color:#8a99ae;text-transform:uppercase;font-weight:700}
+.suggest div.sgItem{padding:9px 14px;font-size:12px;color:#22334f;cursor:pointer;transition:background .15s}
+.suggest div.sgItem:hover{background:#eef6ff}
+.headerNote{text-align:right;font-size:11.5px;line-height:1.4;color:#cfe6fb}
+.headerNote b{display:block;font-size:14px;font-weight:800;color:#fff}
+.chips{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.chip{border:1px solid rgba(255,255,255,.42);background:rgba(255,255,255,.16);color:#fff;padding:7px 15px;
+  border-radius:20px;font-size:12px;font-weight:600;backdrop-filter:blur(6px);transition:.18s}
+.chip:hover{background:rgba(255,255,255,.3);transform:translateY(-1px)}
+
+/* ---------- CONTENT ---------- */
+.content{padding:18px 22px 8px;position:relative;z-index:1}
+.view{display:none}
+.view.active{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.viewHead{margin:2px 2px 14px}
+.viewHead h2{margin:0 0 5px;font-size:22px;font-weight:900;letter-spacing:-.6px;color:#0f2b52}
+.viewHead p{margin:0;font-size:13px;color:var(--muted);max-width:820px;line-height:1.55}
+
+/* ---------- STATS ---------- */
+.stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;gap:7px;transition:transform .2s,box-shadow .2s}
+.stat:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(13,46,85,.16)}
+.statIcon{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-size:17px;
+  background:linear-gradient(135deg,#eaf4ff,#d6ebff)}
+.statVal{font-size:21px;font-weight:900;letter-spacing:-.6px;line-height:1.1;color:#0f2b52}
+.statVal.sm{font-size:14px;letter-spacing:-.2px}
+.statLabel{font-size:11px;font-weight:700;color:#334e6f}
+.statCap{font-size:9.5px;color:var(--muted);line-height:1.45}
+
+/* ---------- CARDS ---------- */
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;
+  display:flex;flex-direction:column;transition:box-shadow .2s}
+.card:hover{box-shadow:0 16px 38px rgba(13,46,85,.14)}
+.cardHead{padding:13px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px;
+  border-bottom:1px solid #eaf1f8}
+.cardHead h3{margin:0;font-size:14.5px;font-weight:800;letter-spacing:-.2px}
+.cardBody{padding:14px 16px;flex:1}
+.link{font-size:11px;font-weight:700;color:var(--blue);white-space:nowrap;transition:.15s;background:none;border:0;padding:0}
+.link:hover{color:#0d4fae;text-decoration:underline}
+.countBadge{min-width:22px;height:22px;padding:0 6px;border-radius:12px;display:grid;place-items:center;
+  background:var(--red);color:#fff;font-size:11px;font-weight:800;box-shadow:0 4px 10px rgba(231,53,75,.4)}
+.mutedNote{display:none;margin-bottom:10px;padding:8px 11px;border-radius:9px;background:#fff6e6;border:1px solid #f6dfb2;
+  color:#a1690a;font-size:10.5px;font-weight:600}
+.muted .mutedNote{display:block}
+.muted .alertList{opacity:.55;filter:saturate(.6)}
+
+.row2{display:grid;grid-template-columns:1.6fr 1fr .9fr;gap:14px;margin-top:14px}
+.row3{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:14px;margin-top:14px}
+
+/* ---------- MAP ---------- */
+.controlBar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:11px 14px;border-bottom:1px solid #eaf1f8;background:#f7fbff}
+.ctrl{display:flex;flex-direction:column;gap:3px}
+.ctrl span{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.ctrl select{border:1px solid #d7e5f4;border-radius:8px;padding:6px 8px;font-size:11.5px;color:#1b3355;background:#fff;outline:0;transition:.15s}
+.ctrl select:focus{border-color:var(--blue2);box-shadow:0 0 0 3px rgba(22,119,232,.15)}
+.mapWrap{position:relative;height:300px;overflow:hidden;background:#0b3b6b}
+.mapViewport{position:absolute;inset:0;overflow:hidden}
+.mapImg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:top left;
+  transform:scale(1.2);transition:transform .35s ease}
+.mapTint{position:absolute;inset:0;pointer-events:none;mix-blend-mode:multiply;opacity:.18;transition:background .35s}
+.mapGrid{position:absolute;inset:0;pointer-events:none;opacity:.55;transition:opacity .2s;
+  background-image:linear-gradient(rgba(255,255,255,.4) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.4) 1px,transparent 1px);
+  background-size:56px 56px}
+.mapLabels{position:absolute;inset:0;pointer-events:none;transition:opacity .2s}
+.mapLbl{position:absolute;transform:translate(-50%,-50%);font-size:11px;font-weight:800;color:#0b2c52;letter-spacing:.3px;
+  white-space:nowrap;padding:2px 8px;border-radius:8px;background:rgba(255,255,255,.74);box-shadow:0 3px 8px rgba(0,20,40,.16)}
+.mapVignette{position:absolute;right:0;bottom:0;width:240px;height:160px;pointer-events:none;z-index:4;
+  background:radial-gradient(circle at 100% 100%,rgba(4,18,38,.96),rgba(4,18,38,.55) 45%,transparent 76%)}
+.mapPin{position:absolute;left:76%;top:26%;z-index:6;font-size:26px;cursor:pointer;filter:drop-shadow(0 5px 7px rgba(0,0,0,.4));
+  animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translate(-50%,-100%)}50%{transform:translate(-50%,-118%)}}
+.pinPopup{position:absolute;left:76%;top:30%;transform:translateX(-50%);z-index:9;display:none;min-width:180px;
+  background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:0 20px 44px rgba(6,26,52,.38)}
+.pinPopup.show{display:block;animation:pop .2s ease}
+.ppTitle{font-size:10.5px;font-weight:800;color:#123b69;margin-bottom:7px}
+.ppRow{font-size:11px;color:#5c6d86;padding:2.5px 0}
+.ppRow b{display:block;font-size:11.5px;color:#123b69}
+.colorbar{position:absolute;right:10px;top:12px;z-index:8;width:72px;display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:8px;border-radius:11px;background:rgba(255,255,255,.9);backdrop-filter:blur(6px);box-shadow:0 10px 24px rgba(0,20,40,.22)}
+.cbTitle{font-size:8.5px;font-weight:800;color:#1b3355;text-align:center;line-height:1.2}
+.cbBody{display:flex;gap:6px;align-items:stretch}
+.cbGradient{width:14px;height:118px;border-radius:4px;transition:background .35s}
+.cbTicks{display:flex;flex-direction:column;justify-content:space-between;font-size:8.5px;color:#334e6f}
+.cbTick{padding:0 3px;border-radius:5px;transition:.2s}
+.cbTick.on{background:#1565d8;color:#fff;font-weight:800;transform:scale(1.14)}
+.mapZoom{position:absolute;left:10px;top:10px;z-index:8;display:flex;flex-direction:column;gap:6px}
+.mapZoom button{width:30px;height:30px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.95);
+  color:#17365d;font-size:15px;font-weight:800;display:grid;place-items:center;box-shadow:0 5px 13px rgba(0,20,40,.18);transition:.15s}
+.mapZoom button:hover{background:#fff;transform:translateY(-1px)}
+.regionTag{position:absolute;left:50%;top:9px;transform:translateX(-50%);z-index:7;white-space:nowrap;
+  background:rgba(255,255,255,.92);color:#0f3a66;font-size:10.5px;font-weight:800;letter-spacing:.3px;
+  padding:4px 13px;border-radius:14px;box-shadow:0 5px 14px rgba(0,20,40,.2)}
+
+/* ---------- BUTTONS ---------- */
+.btnPrimary{border:0;border-radius:10px;color:#fff;font-weight:700;font-size:12px;padding:10px 15px;
+  background:linear-gradient(135deg,#1e7ff0,#1565d8);box-shadow:0 9px 22px rgba(21,101,216,.36);transition:.18s}
+.btnPrimary:hover{transform:translateY(-2px);box-shadow:0 13px 28px rgba(21,101,216,.46)}
+.btnPrimary.full{width:100%;padding:12px;font-size:13px}
+.btnSecondary{border:1px solid #d7e5f4;background:#f5faff;color:#1b3355;border-radius:10px;padding:10px;
+  font-size:12px;font-weight:600;transition:.18s}
+.btnSecondary:hover{background:#eaf4ff;border-color:#b9daf8;transform:translateY(-1px)}
+.btnSmall{border:1px solid #d7e5f4;background:#f5faff;color:var(--blue);border-radius:8px;padding:7px 12px;
+  font-size:11px;font-weight:700;transition:.15s;white-space:nowrap}
+.btnSmall:hover{background:#eaf4ff;border-color:#b9daf8}
+.mapFullBtn{position:absolute;right:12px;bottom:12px;z-index:9}
+
+/* ---------- ALERTS ---------- */
+.alertList{display:flex;flex-direction:column;gap:9px}
+.alert{display:grid;grid-template-columns:32px 1fr auto;gap:10px;padding:10px;border-radius:11px;
+  background:#f8fbff;border:1px solid #e7eef6;transition:.18s}
+.alert:hover{background:#eef6ff;border-color:#c8e0f7;transform:translateX(2px)}
+.alertIcon{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:15px}
+.alertTitle{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.alertTitle b{font-size:11.5px;color:#123b69}
+.sev{font-size:8.5px;font-weight:800;padding:2px 8px;border-radius:9px;text-transform:uppercase;letter-spacing:.3px}
+.sev.high{background:#ffe3e7;color:#c11f34}
+.sev.medium{background:#fff0da;color:#b26a00}
+.sev.info{background:#e2efff;color:#1560b8}
+.sev.good{background:#e0f6ec;color:#0d8a52}
+.alertDetail{font-size:10px;color:#5c6d86;line-height:1.5}
+.alertDesc{font-size:10px;color:#8a97aa;font-style:italic;margin-top:2px}
+.alertTime{font-size:9px;color:#8a99ae;white-space:nowrap;text-align:right}
+
+/* ---------- QUICK ACTIONS ---------- */
+.quickStack{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.subTitle{margin:16px 0 11px;font-size:12px;font-weight:800;color:#334e6f;letter-spacing:.2px}
+.cycle{display:flex;align-items:flex-start;justify-content:space-between;gap:3px}
+.cycleStep{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;transition:.18s;background:none;border:0;padding:0}
+.cycleStep:hover{transform:translateY(-3px)}
+.cycleCircle{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800;
+  box-shadow:0 6px 16px rgba(20,110,220,.32)}
+.cycleStep .lbl{font-size:9px;font-weight:800;color:#1b3355;line-height:1.15}
+.cycleStep small{font-size:8px;color:var(--muted);line-height:1.2}
+.cycleArrow{color:#b6c9dd;font-size:12px;padding-top:8px;flex:0 0 auto}
+
+/* ---------- CHART ---------- */
+.legendRow{display:flex;gap:13px;flex-wrap:wrap;font-size:9.5px;color:#5c6d86;margin-bottom:6px}
+.legendItem{display:flex;align-items:center;gap:5px}
+.legendSwatch{width:16px;height:3px;border-radius:2px}
+.legendSwatch.dashed{background:repeating-linear-gradient(90deg,#18b56a 0 4px,transparent 4px 7px)}
+.profileChart{width:100%;height:auto;display:block}
+.gridlines line{stroke:#e6eef7;stroke-width:1}
+.no-gridlines .gridlines{display:none}
+.axisLine{stroke:#c3d5e8;stroke-width:1.2}
+.tickText{font-size:9px;fill:#7c8ba0}
+.axisTitle{font-size:9.5px;fill:#5c6d86;font-weight:700}
+.seriesRecon{fill:none;stroke:#e7354b;stroke-width:2.4;stroke-linejoin:round}
+.seriesExpected{fill:none;stroke:#1677e8;stroke-width:2.2;stroke-linejoin:round}
+.seriesArgo{fill:none;stroke:#18b56a;stroke-width:1.8;stroke-dasharray:5 4}
+.argoDot{fill:#18b56a}
+
+/* ---------- TABLES ---------- */
+.dtable{width:100%;border-collapse:collapse;font-size:10.5px}
+.dtable th{text-align:left;font-size:9px;font-weight:700;color:#5c6d86;text-transform:uppercase;letter-spacing:.3px;
+  padding:7px 6px;border-bottom:1px solid #e6eef7}
+.dtable td{padding:6.5px 6px;border-bottom:1px solid #f1f6fb;color:#1b3355}
+.dtable tr:hover td{background:#f6fbff}
+.dtable td.num{text-align:right}
+.dtable th.num{text-align:right}
+.anomPos{color:var(--red);font-weight:800}
+.anomSmall{color:#d97b00;font-weight:700}
+
+/* ---------- METRIC / TRUST ---------- */
+.metricRow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f1f6fb;font-size:11px}
+.metricRow span{color:#5c6d86}
+.metricRow b{color:#123b69}
+.pill{font-size:9px;font-weight:800;padding:3px 9px;border-radius:10px;white-space:nowrap}
+.pill.green{background:#e0f6ec;color:#0d8a52}
+.pill.amber{background:#fff0da;color:#b26a00}
+.pill.info{background:#e2efff;color:#1560b8}
+.trustRow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f1f6fb;font-size:11px}
+.trustRow span{color:#5c6d86;font-weight:600}
+.chip2{font-size:9.5px;font-weight:800;padding:4px 10px;border-radius:10px;white-space:nowrap}
+.chip2.green{background:#e0f6ec;color:#0d8a52}
+.chip2.amber{background:#fff0da;color:#b26a00}
+.infoNote{margin-top:12px;padding:10px 12px;border-radius:10px;background:#eef6ff;border:1px solid #d3e6fb;
+  font-size:10px;color:#33517a;line-height:1.6}
+.infoNote b{color:#123b69}
+
+/* ---------- OBS / REPORTS ---------- */
+.obsGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:14px}
+.obsCard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow);transition:.2s}
+.obsCard:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(13,46,85,.14)}
+.obsTop{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.obsTop b{font-size:13.5px;color:#0f2b52}
+.obsFull{font-size:10px;color:var(--muted);min-height:26px}
+.obsBar{height:8px;background:#e7eef6;border-radius:6px;overflow:hidden;margin:9px 0 7px}
+.obsBar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#147be6,#0aa7d8);transition:width .6s}
+.obsMeta{display:flex;justify-content:space-between;font-size:10px;color:#5c6d86;font-weight:700}
+.reportRow{display:grid;grid-template-columns:1fr auto auto auto;gap:14px;align-items:center;padding:13px 0;border-bottom:1px solid #f1f6fb}
+.reportRow:last-child{border-bottom:0}
+.reportRow b{display:block;font-size:12.5px;color:#123b69}
+.reportRow small{font-size:10px;color:var(--muted)}
+
+/* ---------- SETTINGS ---------- */
+.settingRow{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:13px 0;border-bottom:1px solid #f1f6fb}
+.settingRow:last-child{border-bottom:0}
+.settingRow b{display:block;font-size:12.5px;color:#123b69}
+.settingRow small{font-size:10px;color:var(--muted)}
+.switch{position:relative;width:44px;height:24px;border-radius:14px;border:0;flex:0 0 auto;background:#cfdceb;transition:.2s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;
+  transition:.2s;box-shadow:0 2px 5px rgba(0,0,0,.22)}
+.switch.on{background:linear-gradient(135deg,#1e7ff0,#1565d8)}
+.switch.on::after{left:23px}
+.seg{display:inline-flex;border:1px solid #d7e5f4;border-radius:9px;overflow:hidden;flex:0 0 auto}
+.seg button{border:0;background:#fff;padding:7px 14px;font-size:11px;font-weight:700;color:#5c6d86;transition:.15s}
+.seg button.on{background:linear-gradient(135deg,#1e7ff0,#1565d8);color:#fff}
+
+/* ---------- MODAL / TOAST / POPOVER ---------- */
+.overlay{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:20px;
+  background:rgba(4,18,38,.5);backdrop-filter:blur(3px)}
+.overlay.show{display:flex}
+.modal{width:min(660px,96vw);max-height:88vh;overflow:auto;background:#fff;border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.38)}
+.modal.wide{width:min(940px,96vw)}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.modal{animation:pop .25s ease}
+.modalHead{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:16px 20px;background:#fff;border-bottom:1px solid #e9f0f7}
+.modalHead h3{margin:0;font-size:16px;font-weight:800}
+.closeBtn{width:32px;height:32px;border:0;border-radius:9px;background:#eef4fb;color:#33517a;font-size:16px;transition:.15s}
+.closeBtn:hover{background:#e0ebf8}
+.modalBody{padding:18px 20px;font-size:12.5px;color:#33517a;line-height:1.6}
+.modalGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+.metric{padding:12px;border-radius:10px;background:#f6faff;border:1px solid #e3edf6}
+.metric small{font-size:9px;color:#728199;text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+.metric b{display:block;font-size:17px;margin-top:5px;color:#0f2b52}
+.resultRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;
+  background:#f8fbff;border:1px solid #e7eef6;margin-top:8px}
+.resultRow b{display:block;font-size:12px;color:#123b69}
+.resultRow small{font-size:10px;color:var(--muted)}
+.progressTrack{height:10px;border-radius:6px;background:#e6eef7;overflow:hidden;margin:14px 0}
+.progressFill{height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#1e7ff0,#0aa7d8);transition:width .25s}
+.popover{position:fixed;z-index:120;display:none;min-width:180px;background:#fff;border:1px solid var(--line);
+  border-radius:12px;padding:8px;box-shadow:0 22px 50px rgba(6,26,52,.3)}
+.popover.show{display:block;animation:pop .18s ease}
+.popTitle{font-size:9px;font-weight:800;color:#8a99ae;text-transform:uppercase;letter-spacing:.5px;padding:5px 8px}
+.popItem{display:block;width:100%;text-align:left;border:0;background:transparent;padding:9px 10px;border-radius:8px;
+  font-size:12px;color:#1b3355;font-weight:600;transition:.15s}
+.popItem:hover{background:#eef6ff}
+.toast{position:fixed;right:20px;bottom:20px;z-index:200;max-width:330px;padding:12px 16px;border-radius:11px;
+  background:#0a2a4a;color:#fff;font-size:12px;box-shadow:0 16px 40px rgba(0,20,45,.4);opacity:0;transform:translateY(12px);
+  transition:.3s;pointer-events:none}
+.toast.show{opacity:1;transform:none}
+.fullMapControls{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.fullReadout{margin-top:12px;padding:11px 14px;border-radius:10px;background:#f6faff;border:1px solid #e3edf6;
+  font-size:12px;color:#123b69;font-weight:700}
+
+/* ---------- FOOTER ---------- */
+.footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+  padding:18px 22px 22px;color:#3f5a7d;font-size:11px}
+.footer .fLinks{display:flex;gap:14px}
+.footer a{font-weight:600;color:var(--blue);text-decoration:none;transition:.15s}
+.footer a:hover{text-decoration:underline;color:#0d4fae}
+.footer .fRight{display:flex;align-items:center;gap:8px;font-weight:600;color:#33517a}
+
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:1240px){
+  .stats{grid-template-columns:repeat(3,1fr)}
+  .row2{grid-template-columns:1fr 1fr}
+  .row2>.card:first-child{grid-column:span 2}
+  .row3{grid-template-columns:1fr 1fr}
+}
+@media(max-width:900px){
+  .app{display:block}
+  .sidebar{position:relative;height:auto;padding:12px}
+  .nav{flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:4px}
+  .nav button{white-space:nowrap}
+  .sideCard,.sideFoot{display:none}
+  .header{padding:20px}
+  .headerRight{align-items:stretch;min-width:0}
+  .searchRow{justify-content:flex-start}
+  .searchWrap{width:100%}
+  .headerNote{text-align:left}
+  .chips{justify-content:flex-start}
+  .content{padding:14px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .row2,.row3{grid-template-columns:1fr}
+  .row2>.card:first-child{grid-column:auto}
+  .mapWrap{height:260px}
+}
+
+/* ===== REFERENCE IMAGE THEME OVERRIDE ===== */
+:root{
+  --navy:#123b7a;
+  --blue:#1769d8;
+  --blue2:#2787ea;
+  --cyan:#19b9e8;
+  --ink:#123b7a;
+  --muted:#5e769b;
+  --line:#d4e6f8;
+  --red:#e33d58;
+  --orange:#f3a51b;
+  --green:#159b72;
+  --purple:#6d35d8;
+  --purple2:#8c54ed;
+  --sky:#eaf6ff;
+  --soft:#f6fbff;
+  --shadow:0 8px 24px rgba(40,101,170,.13);
+}
+html,body{background:#edf7ff}
+body{
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 92% 8%,rgba(121,211,255,.30),transparent 23%),
+    radial-gradient(circle at 12% 92%,rgba(127,181,255,.18),transparent 25%),
+    linear-gradient(rgba(242,249,255,.55),rgba(234,245,255,.68)),
+    url("https://cdn.youmindassets.com/user-files/e97bd7c4fe9460874e003c3a5b3cd7edab2e3a4656023acd2c42e13b6124600a?width=4000&height=4000&fit=scale-down&format=webp&quality=80");
+  background-size:cover;
+  background-position:center center;
+  background-repeat:no-repeat;
+  background-attachment:fixed;
+  min-height:100vh;
+  position:relative;
+}
+body::before,body::after{
+  content:"";position:fixed;left:-5%;right:-5%;height:150px;z-index:0;pointer-events:none;
+  border-radius:50% 50% 0 0/100% 100% 0 0;
+}
+body::before{
+  bottom:-85px;
+  background:linear-gradient(180deg,rgba(125,191,247,.22),rgba(255,255,255,0));
+  transform:rotate(-2deg);
+}
+body::after{
+  bottom:-112px;
+  background:linear-gradient(180deg,rgba(111,163,239,.18),rgba(255,255,255,0));
+  transform:rotate(2deg);
+}
+.app{grid-template-columns:216px 1fr;position:relative;z-index:1}
+
+/* Light, rounded reference-style sidebar */
+.sidebar{
+  background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(241,248,255,.96));
+  color:#173e7c;
+  border-right:1px solid #d5e6f8;
+  box-shadow:5px 0 24px rgba(44,103,167,.10);
+  backdrop-filter:blur(18px);
+}
+.brand{border-bottom:1px solid #dceafb}
+.brandMark{
+  width:48px;height:48px;border-radius:50%;
+  background:linear-gradient(145deg,#effaff,#d7efff);
+  color:#1769d8;
+  box-shadow:0 6px 18px rgba(36,129,219,.18);
+}
+.brandTxt h1{color:#173f82;font-size:18px}
+.brandTxt span{color:#7090b8}
+.nav{gap:6px}
+.nav button{
+  color:#214b8c;
+  border:1px solid transparent;
+  padding:11px 12px;
+  border-radius:13px;
+}
+.nav button:hover{
+  background:#edf6ff;color:#174d9a;border-color:#d5e8fb;
+}
+.nav button.active{
+  background:linear-gradient(100deg,#5d83f1,#8e5be9);
+  color:#fff;
+  box-shadow:0 8px 20px rgba(105,91,220,.25);
+}
+.nav .ico{color:inherit}
+.sideCard{
+  border:1px solid #d8eafb;
+  background:
+    radial-gradient(circle at 80% 12%,rgba(142,213,255,.72),transparent 44%),
+    linear-gradient(180deg,#eaf7ff,#d9efff);
+  color:#17417f;
+  box-shadow:none;
+}
+.globe{
+  background:radial-gradient(circle at 35% 30%,#bdeeff,#5d8ff0 65%,#7653db);
+  box-shadow:0 8px 22px rgba(75,117,212,.25);
+}
+.sideCard b{color:#173f82}
+.sideCard em{color:#6c43d4}
+.sideCard span{color:#5f78a0}
+.sideFoot{border-top:1px solid #dceafb}
+.sideFoot div{color:#7891b4}
+
+/* Sky/ocean hero */
+.header{
+  padding:22px 28px 20px;
+  min-height:176px;
+  color:#123b7a;
+  background:
+    linear-gradient(180deg,rgba(226,246,255,.90),rgba(207,237,255,.78)),
+    url("https://cdn.youmindassets.com/user-files/e97bd7c4fe9460874e003c3a5b3cd7edab2e3a4656023acd2c42e13b6124600a?width=4000&height=4000&fit=scale-down&format=webp&quality=80");
+  background-size:cover;
+  background-position:center 24%;
+  border-bottom:1px solid #d2e7f8;
+}
+.header::before{
+  background:
+    radial-gradient(circle at 83% 52%,rgba(25,183,232,.22),transparent 25%),
+    linear-gradient(180deg,rgba(255,255,255,.18),transparent 72%);
+}
+.header::after{
+  content:"";position:absolute;left:28%;right:-6%;bottom:-76px;height:150px;
+  background:rgba(255,255,255,.33);
+  border-radius:50%;
+  transform:rotate(-5deg);
+}
+.brandTitle{
+  font-size:40px;
+  background:linear-gradient(90deg,#17498f 0%,#5d22cb 52%,#2079e8 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:none;
+}
+.headerSub{color:#17498f}
+.headerTag{color:#52729e}
+.headerTag::before{color:#6b49db}
+.headerRight{z-index:3}
+.searchWrap{
+  background:rgba(255,255,255,.94);
+  border:1px solid #d2e6f8;
+  box-shadow:0 10px 24px rgba(45,101,166,.12);
+}
+.searchBtn{
+  background:linear-gradient(135deg,#1769d8,#7040db);
+  box-shadow:0 6px 14px rgba(88,77,209,.26);
+}
+.headerNote{color:#52729e}
+.headerNote b{color:#173f82}
+.chip{
+  border:1px solid #bfd9f4;
+  background:rgba(255,255,255,.62);
+  color:#244d8b;
+  backdrop-filter:blur(8px);
+}
+.chip:hover{background:rgba(255,255,255,.9)}
+
+/* Content and cards */
+.content{padding:16px 20px 10px}
+.viewHead h2{color:#173f82}
+.viewHead p{color:#60799d}
+.stat,.card,.obsCard{
+  background:rgba(255,255,255,.92);
+  border:1px solid #d4e7f8;
+  box-shadow:var(--shadow);
+  border-radius:15px;
+}
+.stat:hover,.card:hover,.obsCard:hover{
+  box-shadow:0 14px 32px rgba(49,106,172,.16);
+}
+.statIcon{
+  background:linear-gradient(135deg,#e5f6ff,#dceaff);
+  color:#1769d8;
+}
+.statVal{color:#173f82}
+.statLabel{color:#315784}
+.statCap{color:#7187a7}
+.cardHead{border-bottom-color:#e4eff9}
+.cardHead h3{color:#173f82}
+.link{color:#1769d8}
+.link:hover{color:#6b35d8}
+
+/* Reference-style map controls */
+.controlBar{background:#f6fbff;border-bottom-color:#e0edf8}
+.ctrl span{color:#6b83a5}
+.ctrl select{border-color:#cfe2f5;color:#244b86;background:#fff}
+.ctrl select:focus{border-color:#7b59df;box-shadow:0 0 0 3px rgba(123,89,223,.13)}
+.mapWrap{background:#bfeeff;border-radius:0 0 14px 14px}
+.mapGrid{opacity:.32}
+.mapLbl{background:rgba(255,255,255,.78);color:#17417f}
+.regionTag{color:#244d8b;background:rgba(255,255,255,.90)}
+.colorbar{border:1px solid #d5e8f8}
+.mapZoom button{color:#17417f;border-color:#d5e7f7}
+.mapPin{filter:drop-shadow(0 5px 7px rgba(53,77,142,.28))}
+
+/* Purple/blue action language */
+.btnPrimary{
+  background:linear-gradient(135deg,#1769d8,#7140dc);
+  box-shadow:0 9px 22px rgba(90,74,209,.25);
+}
+.btnPrimary:hover{box-shadow:0 13px 28px rgba(90,74,209,.34)}
+.btnSecondary,.btnSmall{
+  border-color:#cfe2f5;background:#f5faff;color:#24518f;
+}
+.btnSecondary:hover,.btnSmall:hover{
+  background:#edf6ff;border-color:#b7d6f2;
+}
+
+/* Alerts and status */
+.alert{background:#f7fbff;border-color:#deebf7}
+.alert:hover{background:#edf7ff;border-color:#c5def5}
+.alertTitle b{color:#173f82}
+.alertDetail{color:#5f7698}
+.alertDesc,.alertTime{color:#8295af}
+.sev.info{background:#e4f2ff;color:#1769d8}
+.sev.good{background:#e3f7ef;color:#0c8d66}
+
+/* Project cycle */
+.cycleCircle{box-shadow:0 6px 16px rgba(72,103,209,.22)}
+.cycleStep .lbl{color:#244d8b}
+.cycleArrow{color:#a9bfd9}
+
+/* Charts/tables */
+.tickText,.axisTitle{fill:#6c82a2}
+.gridlines line{stroke:#e2edf7}
+.axisLine{stroke:#bdd3e9}
+.dtable th{color:#6780a1;border-bottom-color:#dfeaf5}
+.dtable td{color:#244b86;border-bottom-color:#edf3f9}
+.dtable tr:hover td{background:#f3f9ff}
+.seriesRecon{stroke:#ef4961}
+.seriesExpected{stroke:#2879df}
+.seriesArgo{stroke:#159b72}
+
+/* Trust and information panels */
+.metricRow,.trustRow{border-bottom-color:#e7f0f8}
+.metricRow span,.trustRow span{color:#6680a1}
+.metricRow b{color:#173f82}
+.pill.green,.chip2.green{background:#e1f6ee;color:#0b8d66}
+.pill.amber,.chip2.amber{background:#fff0dc;color:#ae6b08}
+.pill.info{background:#e4f2ff;color:#1769d8}
+.infoNote{
+  background:linear-gradient(135deg,#edf7ff,#f4efff);
+  border-color:#d8e5f8;
+  color:#48698f;
+}
+.infoNote b{color:#5b36b8}
+
+/* observation cards */
+.obsTop b,.reportRow b,.settingRow b{color:#173f82}
+.obsFull,.reportRow small,.settingRow small{color:#7186a5}
+.obsBar{background:#e4eef8}
+.obsBar i{background:linear-gradient(90deg,#1a7be0,#18b9e8,#7546db)}
+
+/* Modal / toast */
+.modal{border:1px solid #d7e8f8}
+.modalHead{border-bottom-color:#e3eef8}
+.modalHead h3{color:#173f82}
+.closeBtn{background:#edf5fc;color:#42628c}
+.metric,.resultRow,.fullReadout{background:#f6faff;border-color:#deebf7}
+.metric b,.resultRow b{color:#173f82}
+.progressFill{background:linear-gradient(90deg,#1a7be0,#7546db)}
+.toast{background:linear-gradient(135deg,#173f82,#5e3cc7)}
+
+/* Footer */
+.footer{color:#6680a1}
+.footer a{color:#1769d8}
+
+/* Small-screen reference behavior */
+@media(max-width:1240px){
+  .app{grid-template-columns:205px 1fr}
+}
+@media(max-width:900px){
+  .sidebar{background:rgba(248,252,255,.96)}
+  .header{min-height:0}
+}
+
+
+/* ===== BORDER + DARK HEADING ENHANCEMENT ===== */
+/* Keep the existing reference theme; strengthen structure and readability. */
+
+.stat,
+.card,
+.obsCard {
+  border: 1.5px solid #c5dced !important;
+  box-shadow: 0 5px 16px rgba(36, 92, 150, .10) !important;
+}
+
+.stat:hover,
+.card:hover,
+.obsCard:hover {
+  border-color: #9fc7e8 !important;
+  box-shadow: 0 12px 28px rgba(36, 92, 150, .16) !important;
+}
+
+/* Strong, dark section headings */
+.cardHead h3,
+.viewHead h2,
+.obsTop b,
+.reportRow b,
+.settingRow b,
+.subTitle {
+  color: #0b2f5f !important;
+  font-weight: 850 !important;
+}
+
+/* Small accent beside important card headings */
+.cardHead h3 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardHead h3::before {
+  content: "";
+  width: 4px;
+  height: 18px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #1769d8, #7040db);
+  flex: 0 0 auto;
+}
+
+/* Clear divider below every card heading */
+.cardHead {
+  border-bottom: 1.5px solid #c9ddec !important;
+  background: linear-gradient(180deg, #ffffff, #f8fcff);
+}
+
+/* Make dashboard metric labels more prominent */
+.statLabel {
+  color: #163e70 !important;
+  font-weight: 800 !important;
+}
+
+.statVal {
+  color: #0b2f5f !important;
+}
+
+/* Darker table headings and important values */
+.dtable th {
+  color: #173b69 !important;
+  font-weight: 800 !important;
+  border-bottom: 1.5px solid #c7dced !important;
+}
+
+.dtable td {
+  border-bottom: 1px solid #dfeaf4 !important;
+}
+
+.metricRow b,
+.trustRow span,
+.metricRow span {
+  color: #173b69 !important;
+}
+
+/* Stronger borders around controls */
+.controlBar {
+  border-bottom: 1.5px solid #c9ddec !important;
+}
+
+.ctrl select {
+  border: 1.5px solid #c4dced !important;
+}
+
+/* Stronger visual separation for alerts */
+.alert {
+  border: 1.25px solid #d0e2f1 !important;
+}
+
+.alertTitle b {
+  color: #0b2f5f !important;
+  font-weight: 850 !important;
+}
+
+/* Stronger borders for action buttons without changing their colors */
+.btnSecondary,
+.btnSmall {
+  border: 1.5px solid #bfd8ec !important;
+}
+
+/* Main page headings */
+.viewHead {
+  border-bottom: 1.5px solid #c9ddec;
+  padding-bottom: 10px;
+}
+
+.viewHead h2 {
+  color: #0a2c58 !important;
+}
+
+/* Darken key navigation text slightly */
+.nav button {
+  color: #1b477f;
+  font-weight: 700;
+}
+
+/* Highlight important status values */
+.pill,
+.chip2,
+.sev {
+  font-weight: 850 !important;
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brandMark">🌊</div>
+      <div class="brandTxt"><h1>OceanEmbed</h1><span>UNLOCKING THE HIDDEN OCEAN</span></div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="active" data-section="dashboard"><span class="ico">📊</span>Dashboard</button>
+      <button data-section="surface"><span class="ico">🛰️</span>Surface Observations</button>
+      <button data-section="reconstruction"><span class="ico">📈</span>Reconstruction</button>
+      <button data-section="state"><span class="ico">🌊</span>Ocean State</button>
+      <button data-section="events"><span class="ico">⚠️</span>Event Analysis</button>
+      <button data-section="validation"><span class="ico">✅</span>ARGO Validation</button>
+      <button data-section="reports"><span class="ico">📄</span>Reports</button>
+      <button data-section="settings"><span class="ico">⚙️</span>Settings</button>
+    </nav>
+    <div class="sideCard">
+      <div class="globe">🌍</div>
+      <b>A Safer Ocean</b>
+      <em>A More Resilient Tomorrow</em>
+      <span>Transforming surface satellite signals into depth-resolved ocean intelligence.</span>
+    </div>
+    <div class="sideFoot">
+      <div>© 2024 OceanEmbed</div>
+      <div>Smart Oceans for a Safer Tomorrow</div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+    <header class="header">
+      <div class="headerInner">
+        <div>
+          <h1 class="brandTitle">OceanEmbed</h1>
+          <p class="headerSub">AI-Powered Subsurface Ocean Temperature Reconstruction</p>
+          <p class="headerTag">From Surface Signals to a Deeper, Safer Tomorrow</p>
+        </div>
+        <div class="headerRight">
+          <div class="searchRow">
+            <div class="searchWrap">
+              <input id="searchInput" class="searchInput" placeholder="Search location (e.g. 15N 88E, Bay of Bengal)" autocomplete="off"/>
+              <button class="searchBtn" onclick="doSearch()" title="Search">🔍</button>
+              <div class="suggest" id="suggest"></div>
+            </div>
+            <div class="headerNote"><b>Deeper Insights</b><span>for a Healthier Ocean</span></div>
+          </div>
+          <div class="chips">
+            <button class="chip" id="dateChip" onclick="openPicker('date')">📅 12 Nov 2024</button>
+            <button class="chip" id="locChip" onclick="openPicker('loc')">📍 North Indian Ocean</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- ---------- DASHBOARD ---------- -->
+      <section class="view active" id="view-dashboard">
+        <section class="stats">
+          <div class="stat"><div class="statIcon">🛰️</div><div class="statVal">7</div><div class="statLabel">Surface Inputs</div><div class="statCap">SST • SSS • SSH • Currents • Winds</div></div>
+          <div class="stat"><div class="statIcon">📊</div><div class="statVal">15</div><div class="statLabel">Depth Levels</div><div class="statCap">0 – 1000 m (Reconstructed)</div></div>
+          <div class="stat"><div class="statIcon">🎯</div><div class="statVal">0.25°</div><div class="statLabel">Target Resolution</div><div class="statCap">High-resolution regional maps</div></div>
+          <div class="stat"><div class="statIcon">🌏</div><div class="statVal sm">North Indian Ocean</div><div class="statLabel">Focus Region</div><div class="statCap">Bay of Bengal • Arabian Sea</div></div>
+          <div class="stat"><div class="statIcon">🧠</div><div class="statVal sm">AI-Powered</div><div class="statLabel">OceanEmbed Model</div><div class="statCap">Spatiotemporal Learning</div></div>
+          <div class="stat"><div class="statIcon">✅</div><div class="statVal sm">Reliable Insights</div><div class="statLabel">Validated with ARGO</div><div class="statCap">For Society &amp; Ecosystems</div></div>
+        </section>
+
+        <section class="row2">
+          <!-- MAP -->
+          <div class="card">
+            <div class="cardHead"><h3>Ocean State Map</h3><button class="link" onclick="openFullMap()">Full Map →</button></div>
+            <div class="controlBar">
+              <label class="ctrl"><span>Variable</span>
+                <select id="mapVariable" onchange="applyMapVariable()">
+                  <option value="temp" selected>Temperature (°C)</option>
+                  <option value="sal">Salinity (PSU)</option>
+                  <option value="dens">Density (kg/m³)</option>
+                  <option value="curr">Current Speed (m/s)</option>
+                </select>
+              </label>
+              <label class="ctrl"><span>Depth</span>
+                <select id="mapDepth" onchange="applyMapDepth()">
+                  <option value="0">0 m</option><option value="50">50 m</option>
+                  <option value="100" selected>100 m</option><option value="150">150 m</option>
+                  <option value="200">200 m</option><option value="300">300 m</option>
+                  <option value="500">500 m</option><option value="700">700 m</option>
+                  <option value="1000">1000 m</option>
+                </select>
+              </label>
+              <label class="ctrl"><span>Region</span>
+                <select id="mapRegion" onchange="applyMapRegion()">
+                  <option selected>North Indian Ocean</option>
+                  <option>Bay of Bengal</option>
+                  <option>Arabian Sea</option>
+                  <option>Equatorial Indian Ocean</option>
+                </select>
+              </label>
+            </div>
+            <div class="mapWrap" id="mapWrap">
+              <div class="mapViewport">
+                <img class="mapImg" id="mapImg" alt="Ocean state map of the North Indian Ocean"
+                  src="https://cdn.youmindassets.com/gen-images/081425df7247e71d744de8352a4b74a78d761e392ae0629bfa9c42aa7f15f5e5.jpg"/>
+                <div class="mapTint" id="mapTint"></div>
+                <div class="mapGrid" id="mapGrid"></div>
+                <div class="mapLabels" id="mapLabels">
+                  <span class="mapLbl" style="left:44%;top:42%">India</span>
+                  <span class="mapLbl" style="left:15%;top:40%">Arabia Sea</span>
+                  <span class="mapLbl" style="left:75%;top:44%">Bay of Bengal</span>
+                  <span class="mapLbl" style="left:50%;top:80%">Sri Lanka</span>
+                </div>
+                <div class="mapPin" onclick="togglePin(event)">📍</div>
+                <div class="pinPopup" id="pinPopup">
+                  <div class="ppTitle">📍 Observation Point</div>
+                  <div class="ppRow"><b id="pinCoords">15.25°N, 88.75°E</b></div>
+                  <div class="ppRow"><span id="pinDepth">Depth: 100 m</span></div>
+                  <div class="ppRow"><span id="pinTemp">Temp: 22.4°C</span></div>
+                  <div class="ppRow"><span id="pinAnomaly">Anomaly: +0.8°C</span></div>
+                </div>
+                <div class="mapVignette"></div>
+                <div class="regionTag" id="regionTag">North Indian Ocean</div>
+                <div class="mapZoom">
+                  <button onclick="zoomMap(1)" title="Zoom in">+</button>
+                  <button onclick="zoomMap(-1)" title="Zoom out">−</button>
+                  <button onclick="toggleMapGrid()" title="Toggle labels &amp; grid">⚙</button>
+                </div>
+                <div class="colorbar">
+                  <div class="cbTitle" id="cbTitle">Temperature (°C)</div>
+                  <div class="cbBody">
+                    <div class="cbGradient" id="cbGradient"></div>
+                    <div class="cbTicks" id="cbTicks"></div>
+                  </div>
+                </div>
+                <button class="btnPrimary mapFullBtn" onclick="openFullMap()">View Full Map →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ALERTS -->
+          <div class="card" id="alertsCard">
+            <div class="cardHead">
+              <h3>Ocean State Alerts</h3>
+              <div style="display:flex;align-items:center;gap:10px">
+                <span class="countBadge" id="alertCount">3</span>
+                <button class="link" onclick="viewAllAlerts()">View All →</button>
+              </div>
+            </div>
+            <div class="cardBody">
+              <div class="mutedNote">🔕 Alert notifications are muted in Settings.</div>
+              <div class="alertList" id="alertsList"></div>
+            </div>
+          </div>
+
+          <!-- QUICK ACTIONS -->
+          <div class="card">
+            <div class="cardHead"><h3>Quick Actions</h3></div>
+            <div class="cardBody">
+              <button class="btnPrimary full" onclick="runReconstruction()">▶ Run Reconstruction</button>
+              <div class="quickStack">
+                <button class="btnSecondary" onclick="genReport()">Generate Report</button>
+                <button class="btnSecondary" onclick="compareArgo()">Compare with ARGO</button>
+                <button class="btnSecondary" onclick="downloadData()">Download Data</button>
+              </div>
+              <div class="subTitle">Project Cycle</div>
+              <div class="cycle">
+                <button class="cycleStep" onclick="cycleInfo(0)">
+                  <span class="cycleCircle" style="background:linear-gradient(135deg,#1e7ff0,#1565d8)">1</span>
+                  <span class="lbl">Observe</span><small>7 Inputs</small>
+                </button>
+                <span class="cycleArrow">→</span>
+                <button class="cycleStep" onclick="cycleInfo(1)">
+                  <span class="cycleCircle" style="background:linear-gradient(135deg,#22b0e6,#0aa7d8)">2</span>
+                  <span class="lbl">Reconstruct</span><small>15 Depths</small>
+                </button>
+                <span class="cycleArrow">→</span>
+                <button class="cycleStep" onclick="cycleInfo(2)">
+                  <span class="cycleCircle" style="background:linear-gradient(135deg,#8f6fe6,#7c5cd6)">3</span>
+                  <span class="lbl">Compare</span><small>Normal State</small>
+                </button>
+                <span class="cycleArrow">→</span>
+                <button class="cycleStep" onclick="cycleInfo(3)">
+                  <span class="cycleCircle" style="background:linear-gradient(135deg,#25c47a,#18b56a)">4</span>
+                  <span class="lbl">Interpret</span><small>Events &amp; Risks</small>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="row3">
+          <!-- PROFILE CHART -->
+          <div class="card">
+            <div class="cardHead"><h3>15-Depth Temperature Profile</h3></div>
+            <div class="cardBody">
+              <div class="legendRow">
+                <span class="legendItem"><i class="legendSwatch" style="background:#e7354b"></i>Reconstructed</span>
+                <span class="legendItem"><i class="legendSwatch" style="background:#1677e8"></i>Expected (Climatology)</span>
+                <span class="legendItem"><i class="legendSwatch dashed"></i>ARGO (if available)</span>
+              </div>
+              <div id="chartDashboard"></div>
+            </div>
+          </div>
+
+          <!-- DEPTH TABLE -->
+          <div class="card">
+            <div class="cardHead"><h3>Depth-wise Reconstruction (15 Levels)</h3></div>
+            <div class="cardBody" style="padding-top:6px">
+              <table class="dtable">
+                <thead><tr>
+                  <th>Depth (m)</th>
+                  <th class="num thTemp" data-label="Reconstructed">Reconstructed (°C)</th>
+                  <th class="num thTemp" data-label="Expected">Expected (°C)</th>
+                  <th class="num">Anomaly (°C)</th>
+                </tr></thead>
+                <tbody id="depthTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ARGO VALIDATION -->
+          <div class="card">
+            <div class="cardHead"><h3>ARGO Validation</h3></div>
+            <div class="cardBody">
+              <div class="metricRow"><span>Matchup Location</span><b>15.20°N, 88.70°E</b></div>
+              <div class="metricRow"><span>Number of Profiles</span><b>12</b></div>
+              <div class="metricRow"><span>Depth Range</span><b>0–1000 m</b></div>
+              <div class="metricRow"><span>RMSE</span><b>0.62 °C</b></div>
+              <div class="metricRow"><span>Bias</span><b>+0.08 °C</b></div>
+              <div class="metricRow"><span>Correlation (R)</span><b>0.94</b></div>
+              <div class="metricRow"><span>Data Quality</span><span class="pill green">Good</span></div>
+              <button class="link" style="margin-top:12px;display:inline-block" onclick="viewValidation()">View Validation Details →</button>
+            </div>
+          </div>
+
+          <!-- TRUSTED OUTPUT -->
+          <div class="card">
+            <div class="cardHead"><h3>Trusted Output</h3></div>
+            <div class="cardBody">
+              <div class="trustRow"><span>Prediction</span><span class="chip2 green" id="trustPred">Reliable</span></div>
+              <div class="trustRow"><span>Anomaly</span><span class="chip2 amber">+0.8 °C (100 m)</span></div>
+              <div class="trustRow"><span>Validation</span><span class="chip2 green">Confirmed (ARGO)</span></div>
+              <div class="trustRow"><span>Uncertainty</span><span class="chip2 amber">±0.3 °C</span></div>
+              <div class="trustRow"><span>Data Health</span><span class="chip2 green">Good</span></div>
+              <div class="infoNote"><b>Unusual subsurface warming detected</b> near 100 m in the northern Bay of Bengal. Consistent with enhanced upper-ocean heat content. Monitoring recommended.</div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- ---------- SURFACE OBSERVATIONS ---------- -->
+      <section class="view" id="view-surface">
+        <div class="viewHead">
+          <h2>Surface Observations</h2>
+          <p>Seven surface variables feed OceanEmbed: SST, SSS, SSH/SLA, current U/V and wind U/V. Health reflects data availability and quality-control status for the selected region and date.</p>
+        </div>
+        <div class="obsGrid" id="obsGrid"></div>
+      </section>
+
+      <!-- ---------- RECONSTRUCTION ---------- -->
+      <section class="view" id="view-reconstruction">
+        <div class="viewHead">
+          <h2>Subsurface Reconstruction</h2>
+          <p>OceanEmbed converts surface conditions into temperature estimates at 15 standard depths from 0 to 1000 m using a spatiotemporal learning model.</p>
+        </div>
+        <div class="row2">
+          <div class="card">
+            <div class="cardHead"><h3>15-Depth Temperature Profile</h3></div>
+            <div class="cardBody">
+              <div class="legendRow">
+                <span class="legendItem"><i class="legendSwatch" style="background:#e7354b"></i>Reconstructed</span>
+                <span class="legendItem"><i class="legendSwatch" style="background:#1677e8"></i>Expected (Climatology)</span>
+                <span class="legendItem"><i class="legendSwatch dashed"></i>ARGO (if available)</span>
+              </div>
+              <div id="chartReconstruction"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="cardHead"><h3>Depth-wise Reconstruction (15 Levels)</h3></div>
+            <div class="cardBody" style="padding-top:6px">
+              <table class="dtable">
+                <thead><tr>
+                  <th>Depth (m)</th>
+                  <th class="num thTemp" data-label="Reconstructed">Reconstructed (°C)</th>
+                  <th class="num thTemp" data-label="Expected">Expected (°C)</th>
+                  <th class="num">Anomaly (°C)</th>
+                </tr></thead>
+                <tbody id="depthTableBody2"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btnPrimary" onclick="runReconstruction()">▶ Run Reconstruction</button>
+          <button class="btnSecondary" onclick="downloadData()">Download Data</button>
+        </div>
+      </section>
+
+      <!-- ---------- OCEAN STATE ---------- -->
+      <section class="view" id="view-state">
+        <div class="viewHead">
+          <h2>Ocean State &amp; Anomaly</h2>
+          <p>Compare the reconstructed profile with the expected location-, depth- and season-aware ocean state to detect abnormal conditions across the North Indian Ocean.</p>
+        </div>
+        <div class="row2">
+          <div class="card">
+            <div class="cardHead"><h3>Ocean State Map</h3><button class="link" onclick="openFullMap()">Full Map →</button></div>
+            <div class="mapWrap" style="height:330px">
+              <div class="mapViewport">
+                <img class="mapImg" alt="Ocean state map" style="transform:scale(1.2)"
+                  src="https://cdn.youmindassets.com/gen-images/081425df7247e71d744de8352a4b74a78d761e392ae0629bfa9c42aa7f15f5e5.jpg"/>
+                <div class="mapTint" style="background:#ff5a2a"></div>
+                <div class="mapGrid"></div>
+                <div class="mapLabels">
+                  <span class="mapLbl" style="left:44%;top:42%">India</span>
+                  <span class="mapLbl" style="left:15%;top:40%">Arabia Sea</span>
+                  <span class="mapLbl" style="left:75%;top:44%">Bay of Bengal</span>
+                  <span class="mapLbl" style="left:50%;top:80%">Sri Lanka</span>
+                </div>
+                <div class="mapPin" style="animation:none">📍</div>
+                <div class="mapVignette"></div>
+                <div class="regionTag">North Indian Ocean</div>
+                <button class="btnPrimary mapFullBtn" onclick="openFullMap()">View Full Map →</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="cardHead"><h3>Anomaly Summary</h3></div>
+            <div class="cardBody">
+              <div class="metricRow"><span>Warmest anomaly</span><b>+0.8 °C @ 100 m</b></div>
+              <div class="metricRow"><span>Upper ocean (0–200 m)</span><b>Elevated heat content</b></div>
+              <div class="metricRow"><span>Stratification</span><b>Stronger than normal</b></div>
+              <div class="metricRow"><span>Deep layer (500–1000 m)</span><b>Near normal</b></div>
+              <div class="metricRow"><span>State classification</span><span class="pill amber">Abnormal — monitor</span></div>
+              <div class="infoNote" style="margin-top:14px">The reconstructed profile exceeds the expected seasonal envelope between 50 m and 200 m, with the strongest signal near 100 m in the northern Bay of Bengal.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- EVENT ANALYSIS ---------- -->
+      <section class="view" id="view-events">
+        <div class="viewHead">
+          <h2>Event Analysis</h2>
+          <p>Interpret detected anomalies using cyclone-response, monsoon variability and marine-heat-event context. This is event-context analysis, not cyclone forecasting. Click any alert for full detail.</p>
+        </div>
+        <div class="card">
+          <div class="cardBody"><div class="alertList" id="eventsList"></div></div>
+        </div>
+      </section>
+
+      <!-- ---------- ARGO VALIDATION ---------- -->
+      <section class="view" id="view-validation">
+        <div class="viewHead">
+          <h2>ARGO Validation</h2>
+          <p>Independently compare reconstructed temperatures with available ARGO observations using correlation, RMSE and bias.</p>
+        </div>
+        <div class="row2">
+          <div class="card">
+            <div class="cardHead"><h3>Validation Metrics</h3></div>
+            <div class="cardBody">
+              <div class="metricRow"><span>Matchup Location</span><b>15.20°N, 88.70°E</b></div>
+              <div class="metricRow"><span>Number of Profiles</span><b>12</b></div>
+              <div class="metricRow"><span>Depth Range</span><b>0–1000 m</b></div>
+              <div class="metricRow"><span>RMSE</span><b>0.62 °C</b></div>
+              <div class="metricRow"><span>Bias</span><b>+0.08 °C</b></div>
+              <div class="metricRow"><span>Correlation (R)</span><b>0.94</b></div>
+              <div class="metricRow"><span>Data Quality</span><span class="pill green">Good</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="cardHead"><h3>Profile Comparison vs ARGO</h3></div>
+            <div class="cardBody" style="padding-top:6px">
+              <table class="dtable">
+                <thead><tr>
+                  <th>Depth (m)</th><th class="num thTemp" data-label="Reconstructed">Reconstructed (°C)</th>
+                  <th class="num">ARGO (°C)</th><th class="num">Diff (°C)</th>
+                </tr></thead>
+                <tbody id="argoTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- REPORTS ---------- -->
+      <section class="view" id="view-reports">
+        <div class="viewHead">
+          <h2>Reports</h2>
+          <p>Review reconstructed profiles, anomaly status, validation metrics, uncertainty and trusted ocean insights. Download any report as a prototype file.</p>
+        </div>
+        <div class="card"><div class="cardBody"><div id="reportList"></div></div></div>
+      </section>
+
+      <!-- ---------- SETTINGS ---------- -->
+      <section class="view" id="view-settings">
+        <div class="viewHead">
+          <h2>Settings</h2>
+          <p>Prototype configuration and mission preferences. Changes apply immediately across the dashboard.</p>
+        </div>
+        <div class="card">
+          <div class="cardBody">
+            <div class="settingRow">
+              <div><b>Temperature Units</b><small>Display absolute temperatures in Celsius or Fahrenheit.</small></div>
+              <div class="seg" id="unitSeg"><button class="on" data-unit="C">°C</button><button data-unit="F">°F</button></div>
+            </div>
+            <div class="settingRow">
+              <div><b>Show Chart Gridlines</b><small>Toggle the reference grid on the depth-profile chart.</small></div>
+              <button class="switch on" id="swGrid" onclick="toggleGridSetting()" aria-label="Toggle gridlines"></button>
+            </div>
+            <div class="settingRow">
+              <div><b>Alert Notifications</b><small>Show toast notifications for ocean-state events.</small></div>
+              <button class="switch on" id="swNotif" onclick="toggleNotifSetting()" aria-label="Toggle notifications"></button>
+            </div>
+            <div class="settingRow">
+              <div><b>Map Labels &amp; Graticule</b><small>Show geographic labels and grid overlay on the ocean state map.</small></div>
+              <button class="switch on" id="swLabels" onclick="toggleLabelsSetting()" aria-label="Toggle map labels"></button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer class="footer">
+      <div class="fLinks">
+        <a onclick="footerInfo('about')">About</a>
+        <a onclick="footerInfo('documentation')">Documentation</a>
+        <a onclick="footerInfo('help')">Help</a>
+      </div>
+      <div class="fRight">🌍 Built for a Resilient Blue Planet</div>
+    </footer>
+  </main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalBox">
+    <div class="modalHead"><h3 id="modalTitle">OceanEmbed</h3><button class="closeBtn" onclick="closeModal()">✕</button></div>
+    <div class="modalBody" id="modalBody"></div>
+  </div>
+</div>
+<div class="popover" id="popover"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= DATA ================= */
+var OCEAN_IMG='https://cdn.youmindassets.com/user-files/e97bd7c4fe9460874e003c3a5b3cd7edab2e3a4656023acd2c42e13b6124600a?width=4000&height=4000&fit=scale-down&format=webp&quality=80';
+var MAP_IMG='https://cdn.youmindassets.com/gen-images/081425df7247e71d744de8352a4b74a78d761e392ae0629bfa9c42aa7f15f5e5.jpg';
+var DEPTHS=[0,50,100,150,200,300,500,700,1000];
+var profile={
+  0:{r:28.1,e:28.0,a:0.1},50:{r:25.4,e:24.8,a:0.6},100:{r:22.4,e:21.6,a:0.8},
+  150:{r:19.8,e:19.1,a:0.7},200:{r:17.6,e:17.0,a:0.6},300:{r:14.2,e:13.9,a:0.3},
+  500:{r:10.4,e:10.1,a:0.3},700:{r:7.8,e:7.6,a:0.2},1000:{r:4.2,e:4.1,a:0.1}
+};
+var argoObs={0:28.0,100:22.6,200:17.4,300:14.0,500:10.6,700:7.9};
+var state={unit:'C',gridlines:true,notifications:true,showLabels:true,mapZoom:1.2,mapVariable:'temp',mapDepth:100,mapRegion:'North Indian Ocean'};
+
+var alertData=[
+ {icon:'🌡️',bg:'#fff0f2',col:'#e7354b',title:'Thermal Anomaly Detected',sev:'high',sevLabel:'High',
+  lines:['Location: 15.25°N, 88.75°E','Depth: ~100 m | Anomaly: +0.8°C'],
+  desc:'Unusual subsurface warming detected.',time:'2 hours ago',
+  detail:'A persistent positive temperature anomaly of +0.8 °C has been reconstructed near 100 m depth in the northern Bay of Bengal. The signal is consistent across the last three satellite passes and exceeds the expected seasonal envelope. Recommended action: monitor and compare with ARGO observations.'},
+ {icon:'🌀',bg:'#fff5e7',col:'#d67b00',title:'Cyclone Response Signal',sev:'medium',sevLabel:'Medium',
+  lines:['Bay of Bengal','Enhanced upper-ocean heat content (0–200 m).'],
+  desc:'Upper-ocean heat content elevated.',time:'6 hours ago',
+  detail:'Upper-ocean heat content (0–200 m) is elevated across the Bay of Bengal. This pattern is often observed in association with cyclone-related mixing and recovery. This is event-context analysis, not cyclone forecasting.'},
+ {icon:'🌊',bg:'#e2efff',col:'#1560b8',title:'Monsoon Variability',sev:'info',sevLabel:'Info',
+  lines:['Northern Bay of Bengal','Stronger than normal stratification observed.'],
+  desc:'Enhanced near-surface stratification.',time:'12 hours ago',
+  detail:'Stronger than normal stratification has been observed in the northern Bay of Bengal, consistent with freshwater input from monsoon rainfall and river discharge.'},
+ {icon:'🗂️',bg:'#e0f6ec',col:'#0d8a52',title:'Surface Data Quality',sev:'good',sevLabel:'Good',
+  lines:['All 7 surface inputs available','Within acceptable range.'],
+  desc:'All inputs passed quality control.',time:'just now',
+  detail:'All seven surface inputs (SST, SSS, SSH/SLA, current U/V, wind U/V) are available and within acceptable quality-control limits.'}
+];
+
+var obsData=[
+ {n:'SST',full:'Sea Surface Temperature',h:94,s:'Good'},
+ {n:'SSS',full:'Sea Surface Salinity',h:89,s:'Good'},
+ {n:'SSH / SLA',full:'Sea Surface Height / Anomaly',h:96,s:'Excellent'},
+ {n:'Currents U',full:'Zonal Current Velocity',h:91,s:'Good'},
+ {n:'Currents V',full:'Meridional Current Velocity',h:90,s:'Good'},
+ {n:'Wind U',full:'Zonal Wind Stress',h:88,s:'Fair'},
+ {n:'Wind V',full:'Meridional Wind Stress',h:87,s:'Fair'}
+];
+
+var reports=[
+ {n:'OceanEmbed Reconstruction Report',d:'12 Nov 2024',s:'2.4 MB'},
+ {n:'ARGO Validation Summary',d:'11 Nov 2024',s:'1.1 MB'},
+ {n:'Ocean State Alert Digest',d:'10 Nov 2024',s:'860 KB'},
+ {n:'Monsoon Variability Brief',d:'08 Nov 2024',s:'1.6 MB'},
+ {n:'Surface Data Quality Log',d:'07 Nov 2024',s:'640 KB'}
+];
+
+var VARCFG={
+ temp:{title:'Temperature (°C)',ticks:['30','25','20','15','10'],
+   grad:'linear-gradient(to bottom,#b30000,#ff7a00,#ffd400,#8fd0ff,#1a4fb4)',tint:'#ff5a2a'},
+ sal:{title:'Salinity (PSU)',ticks:['36','35','34','33','32'],
+   grad:'linear-gradient(to bottom,#0b6b3a,#7ac143,#ffe08a,#e8a33d,#8a4b1e)',tint:'#f0a83c'},
+ dens:{title:'Density (kg/m³)',ticks:['27','26','25','24','23'],
+   grad:'linear-gradient(to bottom,#4a2a8a,#7c5cd6,#0aa7d8,#7fe3f5,#eafcff)',tint:'#7c5cd6'},
+ curr:{title:'Current Speed (m/s)',ticks:['1.5','1.0','0.5','0.2','0.0'],
+   grad:'linear-gradient(to bottom,#03284a,#0aa7d8,#4fd6ef,#a9f0ff,#eafcff)',tint:'#0aa7d8'}
+};
+
+/* ================= HELPERS ================= */
+function $(id){return document.getElementById(id);}
+function tempAbs(c){return state.unit==='C'?c.toFixed(1):(c*9/5+32).toFixed(1);}
+var toastTimer;
+function toast(msg){
+  var t=$('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show');},2600);
+}
+function openModal(title,html,wide){
+  $('modalTitle').textContent=title;$('modalBody').innerHTML=html;
+  $('modalBox').classList.toggle('wide',!!wide);
+  $('overlay').classList.add('show');
+  $('modalBox').scrollTop=0;
+}
+function closeModal(){$('overlay').classList.remove('show');}
+$('overlay').addEventListener('click',function(e){if(e.target.id==='overlay')closeModal();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();$('popover').classList.remove('show');$('suggest').classList.remove('show');}});
+
+/* ================= NAV ================= */
+function showView(name){
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
+  var el=$('view-'+name);if(el)el.classList.add('active');
+  document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('active',b.dataset.section===name);});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('#nav button').forEach(function(b){
+  b.addEventListener('click',function(){
+    showView(b.dataset.section);
+    var label=b.textContent.replace(/[^\w\s&]/g,'').trim();
+    if(b.dataset.section!=='dashboard')toast(label+' opened');
+  });
+});
+
+/* ================= CHART ================= */
+function chartSvg(){
+  var W=520,H=272,PL=46,PT=16,PR=500,PB=226;
+  function xT(t){return (PL+(t/30)*(PR-PL)).toFixed(1);}
+  function yD(d){return (PT+(d/1000)*(PB-PT)).toFixed(1);}
+  var xTicks=[0,5,10,15,20,25,30], yTicks=[0,200,400,600,800,1000];
+  var g='';
+  xTicks.forEach(function(t){g+='<line x1="'+xT(t)+'" y1="'+PT+'" x2="'+xT(t)+'" y2="'+PB+'"/>';});
+  yTicks.forEach(function(d){g+='<line x1="'+PL+'" y1="'+yD(d)+'" x2="'+PR+'" y2="'+yD(d)+'"/>';});
+  var rPts=DEPTHS.map(function(d){return xT(profile[d].r)+','+yD(d);}).join(' ');
+  var ePts=DEPTHS.map(function(d){return xT(profile[d].e)+','+yD(d);}).join(' ');
+  var argo=[[100,22.6],[200,17.4],[300,14.0],[700,7.9]];
+  var aPts=argo.map(function(p){return xT(p[1])+','+yD(p[0]);}).join(' ');
+  var aDots=argo.map(function(p){return '<circle class="argoDot" cx="'+xT(p[1])+'" cy="'+yD(p[0])+'" r="3.2"/>';}).join('');
+  var xLabels=xTicks.map(function(t){return '<text class="tickText xTick" x="'+xT(t)+'" y="'+(PB+14)+'" text-anchor="middle">'+t+'</text>';}).join('');
+  var yLabels=yTicks.map(function(d){return '<text class="tickText" x="'+(PL-7)+'" y="'+(parseFloat(yD(d))+3)+'" text-anchor="end">'+d+'</text>';}).join('');
+  return '<svg viewBox="0 0 '+W+' '+H+'" class="profileChart" preserveAspectRatio="xMidYMid meet">'
+    +'<g class="gridlines">'+g+'</g>'
+    +'<line class="axisLine" x1="'+PL+'" y1="'+PT+'" x2="'+PL+'" y2="'+PB+'"/>'
+    +'<line class="axisLine" x1="'+PL+'" y1="'+PB+'" x2="'+PR+'" y2="'+PB+'"/>'
+    +'<polyline class="seriesExpected" points="'+ePts+'"/>'
+    +'<polyline class="seriesArgo" points="'+aPts+'"/>'
+    +'<polyline class="seriesRecon" points="'+rPts+'"/>'
+    +aDots+xLabels+yLabels
+    +'<text class="axisTitle axisTitleX" x="'+((PL+PR)/2)+'" y="'+(PB+30)+'" text-anchor="middle">Temperature (°C)</text>'
+    +'<text class="axisTitle" x="14" y="'+((PT+PB)/2)+'" text-anchor="middle" transform="rotate(-90 14 '+((PT+PB)/2)+')">Depth (m)</text>'
+    +'</svg>';
+}
+function renderCharts(){
+  if($('chartDashboard'))$('chartDashboard').innerHTML=chartSvg();
+  if($('chartReconstruction'))$('chartReconstruction').innerHTML=chartSvg();
+}
+
+/* ================= TABLES ================= */
+function renderDepthTable(){
+  var rows=DEPTHS.map(function(d){
+    var p=profile[d];
+    var cls=p.a>=0.6?'anomPos':'anomSmall';
+    return '<tr><td>'+d+'</td><td class="num">'+tempAbs(p.r)+'</td><td class="num">'+tempAbs(p.e)+'</td><td class="num '+cls+'">+'+p.a.toFixed(1)+'</td></tr>';
+  }).join('');
+  if($('depthTableBody'))$('depthTableBody').innerHTML=rows;
+  if($('depthTableBody2'))$('depthTableBody2').innerHTML=rows;
+}
+function renderArgoTable(){
+  var rows=DEPTHS.filter(function(d){return argoObs[d]!==undefined;}).map(function(d){
+    var r=profile[d].r,a=argoObs[d],diff=r-a;
+    var sign=diff>=0?'+':'';
+    return '<tr><td>'+d+'</td><td class="num">'+tempAbs(r)+'</td><td class="num">'+tempAbs(a)+'</td><td class="num '+(Math.abs(diff)>=0.2?'anomSmall':'')+'">'+sign+diff.toFixed(1)+'</td></tr>';
+  }).join('');
+  if($('argoTableBody'))$('argoTableBody').innerHTML=rows;
+}
+
+/* ================= OBS / REPORTS / ALERTS ================= */
+function renderObservations(){
+  var el=$('obsGrid');if(!el)return;
+  el.innerHTML=obsData.map(function(o){
+    var col=o.h>=90?'green':'amber';
+    return '<div class="obsCard"><div class="obsTop"><b>'+o.n+'</b><span class="pill '+col+'">'+o.s+'</span></div>'
+      +'<div class="obsFull">'+o.full+'</div>'
+      +'<div class="obsBar"><i style="width:'+o.h+'%"></i></div>'
+      +'<div class="obsMeta"><span>Health</span><span>'+o.h+'%</span></div></div>';
+  }).join('');
+}
+function renderReports(){
+  var el=$('reportList');if(!el)return;
+  el.innerHTML=reports.map(function(r,i){
+    return '<div class="reportRow"><div><b>'+r.n+'</b><small>'+r.d+' • '+r.s+' • PDF</small></div>'
+      +'<span class="pill info">Ready</span>'
+      +'<button class="btnSmall" onclick="downloadReport('+i+')">Download</button></div>';
+  }).join('');
+}
+function renderAlerts(id){
+  var el=$(id);if(!el)return;
+  el.innerHTML=alertData.map(function(a,i){
+    return '<div class="alert" onclick="openAlert('+i+')">'
+      +'<div class="alertIcon" style="background:'+a.bg+';color:'+a.col+'">'+a.icon+'</div>'
+      +'<div><div class="alertTitle"><b>'+a.title+'</b><span class="sev '+a.sev+'">'+a.sevLabel+'</span></div>'
+      +a.lines.map(function(l){return '<div class="alertDetail">'+l+'</div>';}).join('')
+      +'<div class="alertDesc">'+a.desc+'</div></div>'
+      +'<div class="alertTime">'+a.time+'</div></div>';
+  }).join('');
+}
+
+/* ================= MAP ================= */
+function applyMapVariable(){
+  var v=$('mapVariable').value;state.mapVariable=v;
+  var cfg=VARCFG[v];
+  $('cbTitle').textContent=cfg.title;
+  $('cbGradient').style.background=cfg.grad;
+  $('mapTint').style.background=cfg.tint;
+  renderColorbar();
+  toast('Variable set to '+cfg.title);
+}
+function applyMapDepth(){
+  var d=parseInt($('mapDepth').value,10);state.mapDepth=d;
+  var p=profile[d]||profile[100];
+  $('pinDepth').textContent='Depth: '+d+' m';
+  $('pinTemp').textContent='Temp: '+tempAbs(p.r)+'°'+(state.unit==='C'?'C':'F');
+  $('pinAnomaly').textContent='Anomaly: +'+p.a.toFixed(1)+'°C';
+  highlightColorbar(d);
+  toast('Depth set to '+d+' m — '+tempAbs(p.r)+'°'+(state.unit==='C'?'C':'F'));
+}
+function applyMapRegion(){
+  var r=$('mapRegion').value;state.mapRegion=r;
+  $('regionTag').textContent=r;
+  $('locChip').innerHTML='📍 '+r;
+  toast('Region set to '+r);
+}
+function renderColorbar(){
+  var cfg=VARCFG[state.mapVariable];
+  $('cbTicks').innerHTML=cfg.ticks.map(function(t){return '<span class="cbTick">'+t+'</span>';}).join('');
+  highlightColorbar(state.mapDepth);
+}
+function highlightColorbar(depth){
+  var ticks=$('cbTicks').children;if(!ticks.length)return;
+  var idx;
+  if(state.mapVariable==='temp'){
+    var p=profile[depth]||profile[100];
+    idx=Math.round((30-p.r)/5);
+  }else{
+    idx=Math.round((1-depth/1000)*4);
+  }
+  idx=Math.max(0,Math.min(4,idx));
+  for(var i=0;i<ticks.length;i++){ticks[i].classList.toggle('on',i===idx);}
+}
+function zoomMap(dir){
+  state.mapZoom=Math.max(1.0,Math.min(2.0,state.mapZoom+(dir>0?0.12:-0.12)));
+  var img=$('mapImg');if(img)img.style.transform='scale('+state.mapZoom.toFixed(2)+')';
+  toast(dir>0?'Map zoomed in ('+Math.round(state.mapZoom*100)+'%)':'Map zoomed out ('+Math.round(state.mapZoom*100)+'%)');
+}
+function toggleMapGrid(){
+  state.showLabels=!state.showLabels;
+  var labels=$('mapLabels'),grid=$('mapGrid');
+  if(labels)labels.style.opacity=state.showLabels?'1':'0';
+  if(grid)grid.style.opacity=state.showLabels?'.55':'0';
+  var sw=$('swLabels');if(sw)sw.classList.toggle('on',state.showLabels);
+  toast(state.showLabels?'Map labels & grid shown':'Map labels & grid hidden');
+}
+function togglePin(e){
+  e.stopPropagation();
+  var p=$('pinPopup');p.classList.toggle('show');
+  if(p.classList.contains('show'))applyMapDepthSilent();
+}
+function applyMapDepthSilent(){
+  var d=state.mapDepth,p=profile[d]||profile[100];
+  $('pinDepth').textContent='Depth: '+d+' m';
+  $('pinTemp').textContent='Temp: '+tempAbs(p.r)+'°'+(state.unit==='C'?'C':'F');
+  $('pinAnomaly').textContent='Anomaly: +'+p.a.toFixed(1)+'°C';
+}
+document.addEventListener('click',function(e){
+  var pp=$('pinPopup');
+  if(pp&&pp.classList.contains('show')&&!e.target.closest('.pinPopup')&&!e.target.closest('.mapPin'))pp.classList.remove('show');
+});
+
+/* ================= FULL MAP MODAL ================= */
+function openFullMap(){
+  var depthOpts=DEPTHS.map(function(d){return '<option value="'+d+'"'+(d===state.mapDepth?' selected':'')+'>'+d+' m</option>';}).join('');
+  var varOpts=Object.keys(VARCFG).map(function(k){return '<option value="'+k+'"'+(k===state.mapVariable?' selected':'')+'>'+VARCFG[k].title+'</option>';}).join('');
+  var html='<div class="fullMapControls">'
+    +'<label class="ctrl"><span>Depth</span><select id="fullDepth" onchange="fullUpdate()">'+depthOpts+'</select></label>'
+    +'<label class="ctrl"><span>Variable</span><select id="fullVariable" onchange="fullUpdate()">'+varOpts+'</select></label>'
+    +'<div class="mapZoom" style="position:static;flex-direction:row">'
+    +'<button onclick="fullZoom(1)">+</button><button onclick="fullZoom(-1)">−</button>'
+    +'<button onclick="fullToggleGrid()" style="font-size:13px">⚙</button></div>'
+    +'</div>'
+    +'<div class="mapWrap" style="height:430px;border-radius:12px;margin-top:12px">'
+    +'<div class="mapViewport">'
+    +'<img class="mapImg" id="fullMapImg" src="'+MAP_IMG+'" alt="Full ocean state map"/>'
+    +'<div class="mapTint" id="fullTint"></div>'
+    +'<div class="mapGrid" id="fullGrid"></div>'
+    +'<div class="mapLabels" id="fullLabels">'
+    +'<span class="mapLbl" style="left:44%;top:42%">India</span>'
+    +'<span class="mapLbl" style="left:15%;top:40%">Arabia Sea</span>'
+    +'<span class="mapLbl" style="left:75%;top:44%">Bay of Bengal</span>'
+    +'<span class="mapLbl" style="left:50%;top:80%">Sri Lanka</span>'
+    +'</div>'
+    +'<div class="mapPin" style="animation:none">📍</div>'
+    +'<div class="mapVignette"></div>'
+    +'<div class="regionTag" id="fullRegion">'+state.mapRegion+'</div>'
+    +'<div class="colorbar"><div class="cbTitle" id="fullCbTitle"></div>'
+    +'<div class="cbBody"><div class="cbGradient" id="fullCbGrad"></div><div class="cbTicks" id="fullCbTicks"></div></div></div>'
+    +'</div></div>'
+    +'<div class="fullReadout" id="fullReadout"></div>';
+  openModal('Ocean State Map — Full View',html,true);
+  fullUpdate();
+}
+function fullUpdate(){
+  var d=parseInt($('fullDepth').value,10),v=$('fullVariable').value;
+  var cfg=VARCFG[v];
+  var p=profile[d]||profile[100];
+  $('fullTint').style.background=cfg.tint;
+  $('fullCbTitle').textContent=cfg.title;
+  $('fullCbGrad').style.background=cfg.grad;
+  $('fullCbTicks').innerHTML=cfg.ticks.map(function(t){return '<span class="cbTick">'+t+'</span>';}).join('');
+  $('fullReadout').textContent='📍 15.25°N, 88.75°E  •  Depth '+d+' m  •  '+cfg.title+'  •  '+tempAbs(p.r)+'°'+(state.unit==='C'?'C':'F')+'  •  Anomaly +'+p.a.toFixed(1)+'°C';
+  var img=$('fullMapImg');
+  img.style.transform='scale('+(state.mapZoom*1.1).toFixed(2)+')';
+}
+function fullZoom(dir){
+  state.mapZoom=Math.max(1.0,Math.min(2.2,state.mapZoom+(dir>0?0.12:-0.12)));
+  var img=$('fullMapImg');if(img)img.style.transform='scale('+(state.mapZoom*1.1).toFixed(2)+')';
+  toast(dir>0?'Zoomed in':'Zoomed out');
+}
+function fullToggleGrid(){
+  state.showLabels=!state.showLabels;
+  $('fullLabels').style.opacity=state.showLabels?'1':'0';
+  $('fullGrid').style.opacity=state.showLabels?'.55':'0';
+  var sw=$('swLabels');if(sw)sw.classList.toggle('on',state.showLabels);
+}
+
+/* ================= ALERTS ================= */
+function openAlert(i){
+  var a=alertData[i];if(!a)return;
+  var html='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'
+    +'<span style="width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:'+a.bg+';color:'+a.col+';font-size:16px">'+a.icon+'</span>'
+    +'<span class="sev '+a.sev+'">'+a.sevLabel+' severity</span>'
+    +'<span style="margin-left:auto;font-size:10px;color:#8a99ae">'+a.time+'</span></div>'
+    +'<p style="margin:8px 0 0">'+a.detail+'</p>'
+    +'<div class="modalGrid">'+a.lines.map(function(l){var parts=l.split(':');return '<div class="metric"><small>'+(parts[0]||'Detail')+'</small><b style="font-size:13px">'+(parts.slice(1).join(':').trim()||l)+'</b></div>';}).join('')+'</div>'
+    +'<p style="font-size:11.5px;color:#6b7890">Anomalies are detected from the reconstructed profile first; cyclone, monsoon or marine-heat information is then used as context.</p>'
+    +'<button class="btnPrimary" style="margin-top:6px" onclick="closeModal();showView(\'state\')">Open Ocean State →</button>';
+  openModal(a.title,html);
+}
+function viewAllAlerts(){
+  var html='<p style="margin-top:0">All ocean-state alerts for the selected region and date. Click an item to open its detail.</p>'
+    +alertData.map(function(a,i){
+      return '<div class="alert" style="margin-top:9px" onclick="closeModal();openAlert('+i+')">'
+        +'<div class="alertIcon" style="background:'+a.bg+';color:'+a.col+'">'+a.icon+'</div>'
+        +'<div><div class="alertTitle"><b>'+a.title+'</b><span class="sev '+a.sev+'">'+a.sevLabel+'</span></div>'
+        +a.lines.map(function(l){return '<div class="alertDetail">'+l+'</div>';}).join('')+'</div>'
+        +'<div class="alertTime">'+a.time+'</div></div>';
+    }).join('');
+  openModal('All Ocean State Alerts (4)',html);
+}
+
+/* ================= QUICK ACTIONS ================= */
+function runReconstruction(){
+  openModal('Run OceanEmbed Reconstruction',
+    '<p style="margin-top:0">Reconstructing temperature at 15 depths from 7 surface inputs for <b>'+state.mapRegion+'</b>…</p>'
+    +'<div class="progressTrack"><div class="progressFill" id="progFill"></div></div>'
+    +'<div id="progText" style="font-size:11px;color:#64748b">Initialising model…</div>');
+  var steps=['Initialising model…','Fusing 7 surface inputs…','Running spatiotemporal embedding…','Reconstructing 15 depth levels…','Comparing with expected ocean state…','Complete'];
+  var p=0,fill=$('progFill'),txt=$('progText');
+  var iv=setInterval(function(){
+    p+=Math.random()*16+7;if(p>100)p=100;
+    if(fill)fill.style.width=p+'%';
+    if(txt)txt.textContent=steps[Math.min(steps.length-1,Math.floor(p/100*steps.length))];
+    if(p>=100){
+      clearInterval(iv);
+      setTimeout(function(){
+        openModal('Reconstruction Complete',
+          '<p style="margin-top:0">The 15-depth temperature profile has been reconstructed for <b>15.25°N, 88.75°E</b> ('+state.mapRegion+').</p>'
+          +'<div class="modalGrid">'
+          +'<div class="metric"><small>Output Depths</small><b>15</b></div>'
+          +'<div class="metric"><small>Surface Inputs</small><b>7</b></div>'
+          +'<div class="metric"><small>Depth Range</small><b>0–1000 m</b></div>'
+          +'<div class="metric"><small>Anomaly @100 m</small><b>+0.8 °C</b></div>'
+          +'</div>'
+          +'<p style="font-size:11.5px;color:#6b7890">Trusted Output updated: prediction marked <b>Reliable</b>. Validation confirmed with ARGO (R = 0.94).</p>'
+          +'<button class="btnPrimary" onclick="closeModal()">Done</button>');
+        var tp=$('trustPred');if(tp)tp.innerHTML='Reliable ✓';
+        toast('Reconstruction complete — 15 depths updated');
+      },380);
+    }
+  },330);
+}
+function genReport(){
+  var name='OceanEmbed Reconstruction Report — '+state.mapRegion;
+  reports.unshift({n:name,d:'12 Nov 2024',s:'2.4 MB'});
+  renderReports();
+  openModal('Report Generated',
+    '<p style="margin-top:0">A new report has been generated and added to your Reports list.</p>'
+    +'<div class="modalGrid">'
+    +'<div class="metric"><small>Report</small><b style="font-size:13px">Reconstruction</b></div>'
+    +'<div class="metric"><small>Region</small><b style="font-size:13px">'+state.mapRegion+'</b></div>'
+    +'<div class="metric"><small>Date</small><b>12 Nov 2024</b></div>'
+    +'<div class="metric"><small>Size</small><b>2.4 MB</b></div>'
+    +'</div>'
+    +'<button class="btnPrimary" onclick="closeModal();showView(\'reports\')">Go to Reports →</button>');
+  toast('Report generated — added to Reports');
+}
+function compareArgo(){
+  openModal('Compare with ARGO',
+    '<p style="margin-top:0">Independent comparison of the reconstructed profile with available ARGO observations.</p>'
+    +'<div class="modalGrid">'
+    +'<div class="metric"><small>Correlation (R)</small><b>0.94</b></div>'
+    +'<div class="metric"><small>RMSE</small><b>0.62 °C</b></div>'
+    +'<div class="metric"><small>Bias</small><b>+0.08 °C</b></div>'
+    +'<div class="metric"><small>Profiles</small><b>12</b></div>'
+    +'</div>'
+    +'<p style="font-size:11.5px;color:#6b7890">Matchup location 15.20°N, 88.70°E • Depth range 0–1000 m • Data quality: Good.</p>'
+    +'<button class="btnPrimary" onclick="closeModal();viewValidation()">View Validation Details →</button>');
+  toast('Comparing reconstruction with ARGO…');
+}
+function downloadData(){
+  try{
+    var lines=['OceanEmbed — Surface & Reconstructed Data','Region: '+state.mapRegion,'Date: 12 Nov 2024','',
+      'Depth(m),Reconstructed(C),Expected(C),Anomaly(C)'];
+    DEPTHS.forEach(function(d){lines.push(d+','+profile[d].r.toFixed(1)+','+profile[d].e.toFixed(1)+','+profile[d].a.toFixed(1));});
+    var blob=new Blob([lines.join('\n')],{type:'text/csv'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;a.download='oceanembed-data.csv';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(url);},1200);
+    toast('Downloading oceanembed-data.csv');
+  }catch(err){toast('Download unavailable in this environment');}
+}
+function downloadReport(i){
+  var r=reports[i];if(!r)return;
+  try{
+    var blob=new Blob(['OceanEmbed Report\n'+r.n+'\n'+r.d+'\nRegion: '+state.mapRegion+'\n'],{type:'text/plain'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=url;a.download=r.n.replace(/[^\w]+/g,'_')+'.txt';
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(url);},1200);
+  }catch(err){}
+  toast('Downloading '+r.n);
+}
+function viewValidation(){
+  openModal('ARGO Validation Details',
+    '<p style="margin-top:0">Independent verification of OceanEmbed reconstruction against ARGO float observations.</p>'
+    +'<div class="modalGrid">'
+    +'<div class="metric"><small>Matchup Location</small><b style="font-size:14px">15.20°N, 88.70°E</b></div>'
+    +'<div class="metric"><small>Number of Profiles</small><b>12</b></div>'
+    +'<div class="metric"><small>Depth Range</small><b>0–1000 m</b></div>'
+    +'<div class="metric"><small>RMSE</small><b>0.62 °C</b></div>'
+    +'<div class="metric"><small>Bias</small><b>+0.08 °C</b></div>'
+    +'<div class="metric"><small>Correlation (R)</small><b>0.94</b></div>'
+    +'</div>'
+    +'<div class="metricRow"><span>Data Quality</span><span class="pill green">Good</span></div>'
+    +'<p style="font-size:11.5px;color:#6b7890">Correlation of 0.94 with a small positive bias indicates the reconstruction closely tracks independent ARGO observations across the full depth range.</p>'
+    +'<button class="btnPrimary" onclick="closeModal();showView(\'validation\')">Open ARGO Validation →</button>');
+}
+function cycleInfo(i){
+  var txt=[
+    'Observe — 7 surface inputs (SST, SSS, SSH/SLA, currents U/V, winds U/V) are collected and quality-controlled.',
+    'Reconstruct — the model produces temperature at 15 standard depths from 0 to 1000 m.',
+    'Compare — the reconstructed profile is compared with the expected location-, depth- and season-aware ocean state.',
+    'Interpret — anomalies are translated into events and risks for society and ecosystems.'
+  ];
+  toast(txt[i]);
+}
+function footerInfo(k){
+  var map={
+    about:{t:'About OceanEmbed',b:'<p style="margin-top:0">OceanEmbed transforms surface satellite signals into depth-resolved ocean intelligence. It reconstructs subsurface temperature at 15 depths from 7 surface inputs using a spatiotemporal learning model, then compares the result with the expected ocean state to detect abnormal conditions.</p><p style="font-size:11.5px;color:#6b7890">A prototype ocean-intelligence dashboard built for scientific monitoring, ocean forecasting and environmental analysis.</p>'},
+    documentation:{t:'Documentation',b:'<p style="margin-top:0">Key modules:</p><div class="modalGrid"><div class="metric"><small>Inputs</small><b style="font-size:13px">7 surface variables</b></div><div class="metric"><small>Outputs</small><b style="font-size:13px">15 depth levels</b></div><div class="metric"><small>Range</small><b>0–1000 m</b></div><div class="metric"><small>Reference</small><b>GLORYS / ARGO</b></div></div><p style="font-size:11.5px;color:#6b7890">Use the left navigation to explore Surface Observations, Reconstruction, Ocean State, Event Analysis, ARGO Validation and Reports.</p>'},
+    help:{t:'Help & Support',b:'<p style="margin-top:0">Tip: use the search bar to jump to a location or keyword, click the map pin for point detail, and use the Depth dropdown to change the highlighted layer. Press Esc to close any dialog.</p><p style="font-size:11.5px;color:#6b7890">For support, contact the OceanEmbed team.</p>'}
+  };
+  var d=map[k];openModal(d.t,d.b);
+}
+
+/* ================= CHIPS / PICKERS ================= */
+function openPicker(type){
+  var pop=$('popover');
+  var chip=$(type==='date'?'dateChip':'locChip');
+
+  if(type==='date'){
+    /* Calendar date selection: 01 Jan 2024 through today. */
+    var today=new Date();
+    var todayISO=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+    var current=chip.textContent.replace('📅','').trim();
+    var parsed=new Date(current+' 00:00:00');
+    var value='2024-11-12';
+    if(!isNaN(parsed.getTime())){
+      value=parsed.getFullYear()+'-'+String(parsed.getMonth()+1).padStart(2,'0')+'-'+String(parsed.getDate()).padStart(2,'0');
+    }
+
+    pop.innerHTML='<div class="popTitle">Select date</div>'
+      +'<div style="padding:8px 10px 10px">'
+      +'<input id="calendarDate" type="date" min="2024-01-01" max="'+todayISO+'" value="'+value+'" '
+      +'style="width:100%;height:42px;border:1.5px solid #bfd8ec;border-radius:10px;padding:0 10px;background:#fff;color:#173b69;font-size:14px;font-weight:700;outline:none;cursor:pointer" />'
+      +'<div style="font-size:10px;color:#7186a5;margin-top:7px">Choose any date from 01 Jan 2024 to today.</div>'
+      +'</div>';
+    pop.style.maxHeight='';
+    pop.style.overflowY='visible';
+
+    var r=chip.getBoundingClientRect();
+    pop.style.top=(r.bottom+8)+'px';
+    pop.style.left=Math.max(12,Math.min(r.left-30,window.innerWidth-260))+'px';
+    pop.classList.add('show');
+
+    var cal=$('calendarDate');
+    cal.addEventListener('change',function(){
+      if(!this.value)return;
+      var parts=this.value.split('-');
+      var dt=new Date(Number(parts[0]),Number(parts[1])-1,Number(parts[2]));
+      var label=String(dt.getDate()).padStart(2,'0')+' '+dt.toLocaleString('en-GB',{month:'short'})+' '+dt.getFullYear();
+      chip.innerHTML='📅 '+label;
+      pop.classList.remove('show');
+      toast('Date set to '+label);
+    });
+    cal.focus();
+    return;
+  }
+
+  var opts=['North Indian Ocean','Bay of Bengal','Arabian Sea','Equatorial Indian Ocean','Andaman Sea'];
+  pop.innerHTML='<div class="popTitle">Select region</div>'
+    +opts.map(function(o){return '<button class="popItem" data-val="'+o+'">'+o+'</button>';}).join('');
+  pop.style.maxHeight='';
+  pop.style.overflowY='';
+  var r=chip.getBoundingClientRect();
+  pop.style.top=(r.bottom+8)+'px';
+  pop.style.left=Math.max(12,Math.min(r.left-30,window.innerWidth-210))+'px';
+  pop.classList.add('show');
+  pop.querySelectorAll('.popItem').forEach(function(b){
+    b.addEventListener('click',function(){
+      chip.innerHTML='📍 '+b.dataset.val;
+      state.mapRegion=b.dataset.val;$('regionTag').textContent=b.dataset.val;$('mapRegion').value=b.dataset.val;
+      pop.classList.remove('show');
+      toast('Region set to '+b.dataset.val);
+    });
+  });
+}
+document.addEventListener('click',function(e){
+  var pop=$('popover');
+  if(pop.classList.contains('show')&&!e.target.closest('.popover')&&!e.target.closest('.chip'))pop.classList.remove('show');
+});
+
+/* ================= SEARCH ================= */
+var recents=['15N 88E, Bay of Bengal','Arabian Sea — 12N 65E','Thermal anomaly near 100 m','ARGO float #2901234','Cyclone response — Bay of Bengal'];
+var searchPool=[
+ {n:'North Indian Ocean — 15.25°N, 88.75°E',d:'Subsurface anomaly +0.8 °C at 100 m',v:'Ocean State'},
+ {n:'Bay of Bengal',d:'Enhanced upper-ocean heat content (0–200 m)',v:'Event Analysis'},
+ {n:'Arabian Sea — 12°N, 65°E',d:'Normal stratification, ARGO match R = 0.94',v:'ARGO Validation'},
+ {n:'ARGO float #2901234',d:'Profile match, RMSE 0.62 °C',v:'Validation'},
+ {n:'Surface Data Quality',d:'All 7 inputs within acceptable range',v:'Surface Observations'}
+];
+function showSuggest(){
+  var s=$('suggest');
+  s.innerHTML='<div class="sgTitle">Recent searches</div>'
+    +recents.map(function(r){return '<div class="sgItem" data-q="'+r+'">🔎 '+r+'</div>';}).join('');
+  s.classList.add('show');
+  s.querySelectorAll('.sgItem').forEach(function(it){
+    it.addEventListener('click',function(){$('searchInput').value=it.dataset.q;s.classList.remove('show');doSearch();});
+  });
+}
+function hideSuggest(){$('suggest').classList.remove('show');}
+function doSearch(){
+  var q=$('searchInput').value.trim();
+  hideSuggest();
+  if(!q){toast('Type a location or keyword to search');return;}
+  var ql=q.toLowerCase();
+  var hits=searchPool.filter(function(p){return (p.n+' '+p.d+' '+p.v).toLowerCase().indexOf(ql)>-1;});
+  if(!hits.length)hits=searchPool.slice(0,3);
+  var html='<p style="margin-top:0;color:#64748b">Showing '+hits.length+' result(s) for “<b>'+q+'</b>”.</p>'
+    +hits.map(function(p){
+      return '<div class="resultRow"><div><b>'+p.n+'</b><small>'+p.d+'</small></div><span class="pill info">'+p.v+'</span></div>';
+    }).join('')
+    +'<button class="btnPrimary" style="margin-top:14px" onclick="closeModal();showView(\'state\')">Explore on map →</button>';
+  openModal('Search Results',html);
+  toast('Searching OceanEmbed data for “'+q+'”');
+}
+$('searchInput').addEventListener('focus',showSuggest);
+$('searchInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();doSearch();}});
+document.addEventListener('click',function(e){if(!e.target.closest('.searchWrap'))hideSuggest();});
+
+/* ================= SETTINGS ================= */
+function applyUnits(silent){
+  var C=state.unit==='C';
+  document.querySelectorAll('.axisTitleX').forEach(function(el){el.textContent='Temperature ('+(C?'°C':'°F')+')';});
+  var cTicks=[0,5,10,15,20,25,30],fTicks=[32,41,50,59,68,77,86];
+  document.querySelectorAll('.xTick').forEach(function(el,i){el.textContent=C?cTicks[i]:fTicks[i];});
+  document.querySelectorAll('.thTemp').forEach(function(el){el.textContent=el.dataset.label+' ('+(C?'°C':'°F')+')';});
+  renderDepthTable();renderArgoTable();applyMapDepthSilent();
+  if(!silent)toast('Units set to '+(C?'Celsius (°C)':'Fahrenheit (°F)'));
+}
+document.querySelectorAll('#unitSeg button').forEach(function(b){
+  b.addEventListener('click',function(){
+    document.querySelectorAll('#unitSeg button').forEach(function(x){x.classList.remove('on');});
+    b.classList.add('on');state.unit=b.dataset.unit;applyUnits(false);
+  });
+});
+function toggleGridSetting(){
+  state.gridlines=!state.gridlines;
+  document.body.classList.toggle('no-gridlines',!state.gridlines);
+  $('swGrid').classList.toggle('on',state.gridlines);
+  toast(state.gridlines?'Chart gridlines shown':'Chart gridlines hidden');
+}
+function toggleNotifSetting(){
+  state.notifications=!state.notifications;
+  $('swNotif').classList.toggle('on',state.notifications);
+  $('alertsCard').classList.toggle('muted',!state.notifications);
+  toast(state.notifications?'Alert notifications enabled':'Alert notifications muted');
+}
+function toggleLabelsSetting(){toggleMapGrid();}
+
+/* ================= INIT ================= */
+(function init(){
+  renderAlerts('alertsList');
+  renderAlerts('eventsList');
+  renderCharts();
+  renderObservations();
+  renderReports();
+  renderColorbar();
+  applyUnits(true);
+  applyMapDepthSilent();
+  $('cbGradient').style.background=VARCFG.temp.grad;
+  $('mapTint').style.background=VARCFG.temp.tint;
+  $('mapImg').style.transform='scale(1.2)';
+  toast('Welcome to OceanEmbed — North Indian Ocean loaded');
+})();
+</script>
+</body>
+</html>
